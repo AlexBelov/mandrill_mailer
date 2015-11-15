@@ -20,12 +20,14 @@ module MandrillMailer
       attachment_args(args)
     end
 
-    # convert a normal hash into the format mandrill needs
+    # convert a normal nested hash into the format mandrill needs
     def self.mandrill_args(args)
       return [] unless args
-      args.map do |k,v|
-        {'name' => k, 'content' => v}
-      end
+      (converter = lambda do |hash|
+        hash.map do |k,v|
+          { 'name' => k, 'content' => v.kind_of?(Hash) ? converter.call(v) : v }
+        end
+      end).call(args)
     end
 
     def self.merge_vars(args)
